@@ -1,0 +1,16 @@
+sqlalchemy
+asyncpg
+fastapi==0.104.1
+uvicorn==0.24.0
+httpx==0.25.1
+python-multipart==0.0.6
+python-magic
+psycopg2-binary
+boto3
+botocore
+# apt-get install libmagic1
+python-dotenv
+
+openai
+
+numpy
