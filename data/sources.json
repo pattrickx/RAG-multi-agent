@@ -1,0 +1,134 @@
+[
+  {
+    "category": "Big Tech",
+    "name": "Anthropic Engineering",
+    "url": "https://www.anthropic.com/engineering",
+    "description": "AI, LLMs, safety and alignment"
+  },
+  {
+    "category": "Big Tech",
+    "name": "Google Engineering Blog",
+    "url": "https://engineering.googleblog.com",
+    "description": "ML, infrastructure, open source"
+  },
+  {
+    "category": "Big Tech",
+    "name": "Meta Engineering",
+    "url": "https://engineering.fb.com",
+    "description": "Infrastructure, AI, distributed systems"
+  },
+  {
+    "category": "Big Tech",
+    "name": "Microsoft Engineering",
+    "url": "https://devblogs.microsoft.com",
+    "description": "DevOps, cloud, artificial intelligence"
+  },
+  {
+    "category": "Big Tech",
+    "name": "Netflix Tech Blog",
+    "url": "https://netflixtechblog.com",
+    "description": "Microservices, streaming, A/B testing"
+  },
+  {
+    "category": "Big Tech",
+    "name": "Uber Engineering",
+    "url": "https://www.uber.com/blog/engineering",
+    "description": "Geo, mobility, distributed systems"
+  },
+  {
+    "category": "Big Tech",
+    "name": "Spotify Engineering",
+    "url": "https://engineering.atspotify.com",
+    "description": "Audio, personalization, data"
+  },
+  {
+    "category": "Big Tech",
+    "name": "Slack Engineering",
+    "url": "https://slack.engineering",
+    "description": "Real-time, infrastructure, workplace tools"
+  },
+  {
+    "category": "Cloud & Infra",
+    "name": "AWS Architecture Blog",
+    "url": "https://aws.amazon.com/blogs/architecture",
+    "description": "Cloud patterns, serverless, architecture"
+  },
+  {
+    "category": "Cloud & Infra",
+    "name": "Cloudflare Blog",
+    "url": "https://blog.cloudflare.com",
+    "description": "Edge computing, security, CDN, DDoS"
+  },
+  {
+    "category": "Cloud & Infra",
+    "name": "GitHub Engineering",
+    "url": "https://github.blog/engineering",
+    "description": "Git, CI/CD, developer workflows"
+  },
+  {
+    "category": "Cloud & Infra",
+    "name": "GitLab Blog",
+    "url": "https://about.gitlab.com/blog",
+    "description": "DevOps, pipelines, remote work"
+  },
+  {
+    "category": "Fintech & APIs",
+    "name": "Stripe Engineering",
+    "url": "https://stripe.com/blog/engineering",
+    "description": "APIs, payments, reliability at scale"
+  },
+  {
+    "category": "Fintech & APIs",
+    "name": "PayPal Tech",
+    "url": "https://medium.com/paypal-tech",
+    "description": "Fraud detection, security, payments"
+  },
+  {
+    "category": "Newsletters & Curation",
+    "name": "The Pragmatic Engineer",
+    "url": "https://newsletter.pragmaticengineer.com",
+    "description": "Engineering, career, big tech insights"
+  },
+  {
+    "category": "Newsletters & Curation",
+    "name": "ByteByteGo",
+    "url": "https://blog.bytebytego.com",
+    "description": "System design, architecture"
+  },
+  {
+    "category": "Newsletters & Curation",
+    "name": "TLDR Newsletter",
+    "url": "https://tldr.tech",
+    "description": "Daily tech news summaries"
+  },
+  {
+    "category": "Newsletters & Curation",
+    "name": "Hacker News",
+    "url": "https://news.ycombinator.com",
+    "description": "General aggregator - most important in the industry"
+  },
+  {
+    "category": "AI & ML",
+    "name": "OpenAI Research",
+    "url": "https://openai.com/research",
+    "description": "AI research papers and posts"
+  },
+  {
+    "category": "AI & ML",
+    "name": "Hugging Face Blog",
+    "url": "https://huggingface.co/blog",
+    "description": "NLP, models, fine-tuning, datasets"
+  },
+  {
+    "category": "AI & ML",
+    "name": "DeepMind Blog",
+    "url": "https://deepmind.google/discover/blog",
+    "description": "Cutting-edge AI research"
+  },
+  {
+    "category": "AI & ML",
+    "name": "Weights & Biases Blog",
+    "url": "https://wandb.ai/fully-connected",
+    "description": "MLOps, experiment tracking"
+  }
+]
