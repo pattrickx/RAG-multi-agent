@@ -10,6 +10,8 @@ Strategy:
 
 from __future__ import annotations
 
+import logging
+
 import asyncio
 import json
 import os
@@ -26,6 +28,10 @@ from pydantic import BaseModel, Field
 from services.utils.key_balancer import create_llm, setup_balancer
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -90,6 +96,17 @@ Rules:
 # LLM setup
 # ---------------------------------------------------------------------------
 
+def _get_openrouter_key() -> str:
+    """Get first available OpenRouter API key from environment."""
+    # Try numbered keys first (OPENROUTER_API_KEY1, etc.)
+    for i in range(1, 20):
+        key = os.environ.get(f"OPENROUTER_API_KEY{i}")
+        if key:
+            return key
+    # Fallback to singular
+    return os.environ.get("OPENROUTER_API_KEY", "")
+
+
 def build_llm(model: str | None = None):
     """Build LLM with SmartKeyBalancer for extraction tasks."""
     try:
@@ -102,7 +119,7 @@ def build_llm(model: str | None = None):
             model=model or os.environ.get("LLM_MODEL", "nvidia/nemotron-3-ultra-550b-a55b:free"),
             temperature=0,
             base_url="https://openrouter.ai/api/v1",
-            api_key=os.environ.get("OPENROUTER_API_KEY", ""),
+            api_key=_get_openrouter_key(),
         )
 
 
@@ -247,6 +264,7 @@ async def extract_articles_from_html(
 ) -> list[dict[str, Any]]:
     """
     Extract article list from frontpage HTML using LLM.
+    Uses json_object mode for structured output (no Pydantic model).
 
     Args:
         html: Raw HTML of the frontpage.
@@ -256,49 +274,47 @@ async def extract_articles_from_html(
     Returns:
         List of dicts with 'title', 'url', 'date'.
     """
-    html_truncated = html[:80_000]
-    llm = build_llm(model)
+    # Reduce HTML to avoid truncation — strip scripts/styles first
+    import re
+    html_clean = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    html_clean = re.sub(r'<style[^>]*>.*?</style>', '', html_clean, flags=re.DOTALL | re.IGNORECASE)
+    html_clean = re.sub(r'\s+', ' ', html_clean)
+    html_truncated = html_clean[:60_000]
 
-    try:
-        structured_llm = llm.with_structured_output(ArticleList)
-    except Exception:
-        # Fallback: manual JSON parsing if structured output not supported
-        structured_llm = llm
+    llm = build_llm(model)
 
     messages = [
         SystemMessage(content=EXTRACTION_SYSTEM),
         HumanMessage(content=f"Base URL: {base_url}\n\nFrontpage HTML:\n\n{html_truncated}"),
     ]
 
-    result = await structured_llm.ainvoke(messages)
+    # Direct LLM call (no with_structured_output — we parse JSON manually)
+    result = await llm.ainvoke(messages)
 
-    # Handle both structured and unstructured output
-    if isinstance(result, ArticleList):
-        articles = result.articles
-    elif isinstance(result, dict) and "articles" in result:
-        articles = [ArticleItem(**a) for a in result["articles"]]
-    else:
-        # Try to parse from raw text
-        raw = str(result)
-        try:
-            # Find JSON in response
-            start = raw.find("{")
-            end = raw.rfind("}") + 1
-            if start >= 0 and end > start:
-                parsed = json.loads(raw[start:end])
-                articles = [ArticleItem(**a) for a in parsed.get("articles", [])]
-            else:
-                articles = []
-        except (json.JSONDecodeError, Exception):
-            articles = []
+    # Extract content from result
+    raw = getattr(result, "content", str(result))
 
-    output: list[dict[str, Any]] = []
-    for article in articles:
-        item = article.model_dump() if hasattr(article, "model_dump") else dict(article)
-        item["url"] = urljoin(base_url, item["url"])
-        output.append(item)
+    # Try to parse JSON from response
+    articles: list[dict[str, Any]] = []
+    try:
+        # Find JSON object in response
+        start = raw.find("{")
+        end = raw.rfind("}") + 1
+        if start >= 0 and end > start:
+            parsed = json.loads(raw[start:end])
+            raw_articles = parsed.get("articles", [])
+            for a in raw_articles:
+                item = {
+                    "title": a.get("title", ""),
+                    "url": urljoin(base_url, a.get("url", "")),
+                    "date": a.get("date"),
+                }
+                if item["title"] and item["url"]:
+                    articles.append(item)
+    except (json.JSONDecodeError, Exception) as e:
+        logger.warning(f"Failed to parse LLM response as JSON: {e}")
 
-    return output
+    return articles
 
 
 # ---------------------------------------------------------------------------

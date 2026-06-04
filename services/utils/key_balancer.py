@@ -26,7 +26,7 @@ import time
 from typing import Any
 
 from dotenv import load_dotenv
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.outputs import ChatResult
 from langchain_openai import ChatOpenAI
 
@@ -178,7 +178,7 @@ class BalancedOpenRouter(ChatOpenAI):
         **kwargs,
     ) -> ChatResult:
         if self._balancer is None:
-            raise RuntimeError("BalancedOpenRouter._balancer nao foi configurado.")
+            raise RuntimeError("BalancedOpenRouter._balancer not configured.")
 
         keys_to_try = self._balancer.all_keys()
         if not keys_to_try:
@@ -187,12 +187,112 @@ class BalancedOpenRouter(ChatOpenAI):
         last_exc: Exception | None = None
 
         for key in keys_to_try:
-            self.openai_api_key = key
             logger.debug(f"[KeyBalancer] Trying key ...{key[-6:]}")
             try:
-                result = super()._generate(messages, stop, run_manager, **kwargs)
-                logger.debug(f"[KeyBalancer] Success with key ...{key[-6:]}")
-                return result
+                # Use OpenAI client directly with the current key
+                from openai import OpenAI
+                from langchain_core.outputs import ChatResult, ChatGeneration
+
+                client = OpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=key,
+                )
+
+                # Convert langchain messages to OpenAI format
+                openai_messages = []
+                for msg in messages:
+                    role = getattr(msg, "type", "user")
+                    if role == "system":
+                        openai_messages.append({"role": "system", "content": msg.content})
+                    elif role == "ai":
+                        openai_messages.append({"role": "assistant", "content": msg.content})
+                    else:
+                        openai_messages.append({"role": "user", "content": str(msg.content)})
+
+                kwargs.pop("response_format", None)
+                response = client.chat.completions.create(
+                    model=self.model_name,
+                    messages=openai_messages,
+                    stop=stop,
+                    temperature=self.temperature,
+                    max_tokens=4096,
+                    response_format={"type": "json_object"},
+                    **kwargs,
+                )
+
+                content = response.choices[0].message.content
+                generation = ChatGeneration(message=AIMessage(content=content))
+                return ChatResult(generations=[generation])
+
+            except Exception as exc:
+                last_exc = exc
+                if _is_rate_limit_error(exc):
+                    self._balancer.mark_rate_limited(key, _parse_retry_after(exc))
+                    continue
+                if _is_auth_error(exc):
+                    self._balancer.mark_failed(key)
+                    continue
+                raise
+
+        raise RuntimeError(
+            f"[KeyBalancer] All {len(keys_to_try)} keys failed. "
+            f"Last error: {last_exc}"
+        ) from last_exc
+
+    async def _agenerate(
+        self,
+        messages: list[BaseMessage],
+        stop: list[str] | None = None,
+        run_manager: Any = None,
+        **kwargs,
+    ) -> ChatResult:
+        if self._balancer is None:
+            raise RuntimeError("BalancedOpenRouter._balancer not configured.")
+
+        keys_to_try = self._balancer.all_keys()
+        if not keys_to_try:
+            raise RuntimeError("[KeyBalancer] No key available.")
+
+        last_exc: Exception | None = None
+
+        for key in keys_to_try:
+            logger.debug(f"[KeyBalancer] Trying key ...{key[-6:]}")
+            try:
+                from openai import AsyncOpenAI
+                from langchain_core.outputs import ChatResult, ChatGeneration
+
+                client = AsyncOpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=key,
+                )
+
+                openai_messages = []
+                for msg in messages:
+                    role = getattr(msg, "type", "user")
+                    if role == "system":
+                        openai_messages.append({"role": "system", "content": msg.content})
+                    elif role == "ai":
+                        openai_messages.append({"role": "assistant", "content": msg.content})
+                    else:
+                        openai_messages.append({"role": "user", "content": str(msg.content)})
+
+                # Always use json_object mode for structured output
+                # Pop response_format from kwargs to avoid duplicate (langchain may inject it)
+                kwargs.pop("response_format", None)
+                response = await client.chat.completions.create(
+                    model=self.model_name,
+                    messages=openai_messages,
+                    stop=stop,
+                    temperature=self.temperature,
+                    max_tokens=4096,
+                    response_format={"type": "json_object"},
+                    **kwargs,
+                )
+
+                content = response.choices[0].message.content or ""
+                generation = ChatGeneration(message=AIMessage(content=content))
+                return ChatResult(generations=[generation])
+
             except Exception as exc:
                 last_exc = exc
                 if _is_rate_limit_error(exc):

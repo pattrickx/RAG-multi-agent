@@ -28,3 +28,6 @@ Thumbs.db
 
 # Backups
 *.bak
+
+# Scraped data
+data/articles/
