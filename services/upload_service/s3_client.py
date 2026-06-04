@@ -23,9 +23,9 @@ load_dotenv()
 # Constants
 # ---------------------------------------------------------------------------
 
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "changemeuser")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "change...")
-ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL", "http://192.168.0.14:9900")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
 
 
 # ---------------------------------------------------------------------------

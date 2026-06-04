@@ -45,7 +45,7 @@ load_dotenv()
 # Constants
 # ---------------------------------------------------------------------------
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql+asyncpg://devuser:devpass@192.168.0.14:5432/devdb")
+DATABASE_URL = os.environ.get("DATABASE_URL")
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 12010
 

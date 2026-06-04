@@ -35,9 +35,9 @@ load_dotenv()
 
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL")
 
-API_BASE = os.environ.get("API_BASE_URL", "http://192.168.0.14:12010")
-API_USER = os.environ.get("API_USER", "master")
-API_PASS = os.environ.get("API_PASS", "master")
+API_BASE = os.environ.get("API_BASE_URL")
+API_USER = os.environ.get("API_USER")
+API_PASS = os.environ.get("API_PASS")
 
 # Docling pipeline config
 _PIPELINE_OPTIONS = PdfPipelineOptions()

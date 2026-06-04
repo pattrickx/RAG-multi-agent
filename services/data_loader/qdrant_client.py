@@ -25,7 +25,7 @@ load_dotenv()
 # Constants
 # ---------------------------------------------------------------------------
 
-QDRANT_URL = os.environ.get("QDRANT_URL", "http://192.168.0.14:6333")
+QDRANT_URL = os.environ.get("QDRANT_URL")
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL")
 
 DEFAULT_COLLECTION = "docs"
